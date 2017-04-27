@@ -18,10 +18,9 @@ class Authentication extends CI_Model
 	public function do_authorize($post)
 	{
 
-		$this->authorize 	= $this->users_model->get_credential($post['credential']['administrator'], $post['credential']['source']);
-
-		if(!isset($_GET['using_auth']) || $_GET['using_auth'] != 0)
+		if((!isset($_GET['using_auth']) || $_GET['using_auth'] != 0) && isset($post['credential']['administrator']))
 		{
+			$this->authorize 	= $this->users_model->get_credential($post['credential']['administrator'], $post['credential']['source']);
 			if($this->authorize['need_auth'] == true && !$this->authorize['is_auth'])
 			{
 				header('HTTP/1.0 500 error on credential');
