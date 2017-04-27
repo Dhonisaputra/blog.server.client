@@ -64,9 +64,6 @@ class Authentication extends CI_Model
 	{
 		if(!$this->isAjax)
 		{
-			// header('HTTP/1.0 500 sorry, you dont have any authorize to access this page');
-			show_error('you dont have any authorize to access this page', '500', 'Error on credential');
-				return false;
 		}
 	}
 

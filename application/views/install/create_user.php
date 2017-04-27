@@ -29,6 +29,13 @@
 	</section>
 
 	<script type="text/javascript">
+		if(!sessionStorage.res){
+			window.location.href = '<?php echo base_url("install/login") ?>'
+		}
+		if(!sessionStorage.setting_db){
+			window.location.href = '<?php echo base_url("install/setting_database") ?>'
+		}
+
 		function create_user(e, ui)
 		{
 			e.preventDefault();

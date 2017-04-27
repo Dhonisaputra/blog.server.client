@@ -42,9 +42,8 @@ class Article extends CI_Controller
 	public function insert_article()
 	{
 		$post = $this->input->post();
-
 		$this->model_post->insert_post(array(
-				'id_user' 	=> $this->authorize['owner_id'],
+				'id_user' 	=> $this->authentication->authorize['user_key'],
 				'title' 	=> $post['article']['title'],
 				'content' 	=> $post['article']['content'],
 				'post_tag' 	=> $post['article']['tag'],
@@ -55,10 +54,10 @@ class Article extends CI_Controller
 			$this->db
 		);
 		$id_post = $this->db->insert_id();
-		$hash_raw = $this->authorize['prefix'].'*'.$this->authorize['owner_id'].'*'.$id_post;
+		$hash_raw = $this->authentication->authorize['user_key'].'*'.$id_post;
 		$article_hash = $this->auth->encrypt($hash_raw, 'hashing', 'articles', true);
 		$setcronjob = '';
-		if(isset($post['article']['schedule_publish']))
+		if($post['article']['set_schedule'] == true)
 		{
 			$str_time = strtotime($post['article']['schedule_publish']);
 			$date = Date('d', $str_time);
@@ -78,8 +77,8 @@ class Article extends CI_Controller
 			), 
 			array(
 				'id_post' => $id_post
-				), 
-			$this->db);
+				)
+			);
 
 
 		if(count($post['article']['categories']) > 0 && isset($post['article']['categories']))
@@ -192,12 +191,9 @@ class Article extends CI_Controller
 		{
 			$xpl = explode('*', $decrypt['decrypted_text']);
 			$prefix = $xpl[0];
-			$owner_id = $xpl[1];
+			$user_key = $xpl[1];
 			$id_post = $xpl[2];
-			$db = $prefix.$owner_id;
-			$newDBConfig = $this->owner_model->config_db($db);
-			$this->db = $this->load->database($newDBConfig, true);
-			$data = $this->model_post->get_post('*', array('posts.id_post' => $id_post), $this->db)->row_array();
+			$data = $this->model_post->get_post('*', array('posts.id_post' => $id_post))->row_array();
 
 			$this->model_post->update_post(
 			array(
@@ -206,8 +202,8 @@ class Article extends CI_Controller
 			), 
 			array(
 				'id_post' => $id_post
-				), 
-			$this->db);
+				)
+			);
 			$delcronjob = 'https://www.setcronjob.com/api/cron.delete?token=cxo0l0ub0y5xhrsrchfoehxwvfqtjgo9&id='.$data['cron_id'];
 			file_get_contents($delcronjob);
 		}
@@ -216,10 +212,21 @@ class Article extends CI_Controller
 	public function add_category()
 	{
 		$post = $this->input->post();
-		$res = $this->model_post->insert_category($post['category'],$this->db);
+		$res = $this->model_post->insert_category($post['category']);
 		echo json_encode(
 				array('insertId' => $res->insert_id())
 			);
+	}
+
+	public function delete_articles()
+	{
+		$post = $this->input->post();
+		if(!isset($post['where']))
+		{
+			header('http/1.0 500 insufficient parameters');
+			return false;
+		}
+		$this->model_post->remove_posts($post['where']);
 	}
 
 }

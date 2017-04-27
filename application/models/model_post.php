@@ -35,7 +35,7 @@ class Model_post extends CI_Model
 		return $this->db;
 	}
 
-	public function remove_posts($table, $where)
+	public function remove_posts($where)
 	{
 		$this->db->delete('posts', $where); 
 	}

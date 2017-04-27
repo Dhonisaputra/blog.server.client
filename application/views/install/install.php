@@ -37,6 +37,9 @@
 	</section>
 
 	<script type="text/javascript">
+		if(!sessionStorage.res){
+			window.location.href = '<?php echo base_url("install/login") ?>'
+		}
 		function setting_database(e, ui)
 		{
 			e.preventDefault();
@@ -45,6 +48,7 @@
 			$.post('<?php echo base_url("install/process_save_settings_database") ?>', data)
 			.done(function(res){
 				console.log(res)
+				sessionStorage.setting_db = true
 				window.location.href = '<?php echo base_url("install/create_user") ?>'
 				
 			})
