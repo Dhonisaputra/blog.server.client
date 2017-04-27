@@ -37,8 +37,14 @@
 | in the URL cannot be matched to a valid route.
 |
 */
-
-$route['default_controller'] = "welcome";
+include(APPPATH.'config/server.php');
+if(!isset($server['hostname']))
+{
+	$route['default_controller'] = "install/login";
+}else
+{
+	$route['default_controller'] = "welcome";
+}
 $route['404_override'] = '';
 
 
