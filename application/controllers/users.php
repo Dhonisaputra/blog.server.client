@@ -19,39 +19,64 @@ class Users extends CI_Controller
 		return $auth->create_account($data, array('password_hash' => 'password', 'exception' => 'email' ));
 	}
 	
+	public function curl_create_new_users()
+	{
+		$this->load->library('curl');
+		// $this->curl->simple_post();
+		// $user = $this->input->post('user');
+		$this->create_new_users();
+	}
 	public function create_new_users()
 	{
-		if( !isset($_POST['username']) 	||
-			!isset($_POST['email']) ||
-			!isset($_POST['password'])
+		if( !isset($_POST['user']['username']) 	||
+			!isset($_POST['user']['email']) 	||
+			!isset($_POST['user']['password'])
 			){
 			show_error('Error insuficient data.', '500');
 			return false;
 		}
 
 		$post = $this->input->post();
-		$e = $this->encrypt($post);
-		$this->users_model->new_users(array(
+		$isExsist = $this->is_users_exist($post['user']['email']);
+		if( $isExsist == TRUE )
+		{
+			header('http/1.0 500 user has been exists!'); return false;
+		}
+		$e = $this->encrypt($post['user']);
+		$user = $this->users_model->new_users(array(
 				'username' 	=> $e['username'],
 				'email' 	=> $e['email'],
 				'password'	=> $e['password'],
 				'key_A' 		=> $e['key_A'],
 				'key_B' 		=> $e['key_B'],
-				'userlevel' 	=> '0',
+				'userlevel' 	=> $post['user']['userlevel'],
 			)
 		);
+		if($user->insert_id())
+		{
+			echo array('code'=>200);
+		}else
+		{
+			header('http/1.0 500 error on save user');
+			return false;
+		}
 	}
 
 	public function is_users_exist($email = '')
 	{
+
 		$post = $this->input->post();
-		$users = $this->users_model->get_users('*', array('users_email' => $post['email']))->result_array();
+		$email = $email !== '' ? $email : $post['email'];
+		$users = $this->users_model->get_users('*', array('email' => $email))->result_array();
 		if(count($users) > 0)
 		{
-			header('http/1.0 500 user exist');
-			return false;
+			if($this->isAjax)
+			{
+				header('http/1.0 500 user exist');
+			}
+			return true;
 		}
-		return count($users) > 0? true : false;
+		return false;
 	}
 	public function login()
 	{

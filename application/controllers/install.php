@@ -31,25 +31,14 @@ class Install extends CI_Controller {
 		require_once(APPPATH.'libraries/profiling/Pengguna.php');
 		$this->auth = new Pengguna;
 
-		$post = $this->input->post();
-		$uniqid = uniqid();
-		$owner_id = $post['owner_id'];
-		
-		$data_curl = array(
-				'token' => $post['blog_key'],
-				'id' => $owner_id,
-				'time' => $uniqid,
-				'u' => base_url(),
-				'db' => $post,
-			);
-		$url_curl = $server['processing_server'].'/blog/setting_db?using_auth=0';
-		
+		$post = $this->input->post();				
 		$connected = $this->authentication->set_db($post)->initialize();
 		
 		if($connected)
 		{
 			$text = '<?php'."\n";
-			$text .= '$server["processing_server"] = "'.$server["processing_server"].'";'."\n";
+			$text .= '$server["remote_server"] = "'.$post["remote_server"].'";'."\n";
+			$text .= '$server["processing_server"] = "'.$post["processing_server"].'";'."\n";
 			$text .= '$server["server_url"] = "'.base_url().'";'."\n";
 			
 			$text .='$server["hostname"] = "'.$post['hostname'].'";'."\n";
@@ -58,8 +47,8 @@ class Install extends CI_Controller {
 			$text .='$server["database"] = "'.$post['database'].'";'."\n";
 			$text .='$server["blog_key"] = "'.$post['blog_key'].'";'."\n";
 
-			file_put_contents(APPPATH.'config/server.php', $text);
-			$this->curl->simple_post($url_curl, $data_curl); 
+			$text = $this->auth->encrypt(json_encode($post), '@cert', '@blog', true);
+			file_put_contents(BASEPATH.'certificate/server.cert', $text);
 
 			$this->curl->simple_post('install/install_database');
 		}else

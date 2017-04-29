@@ -38,13 +38,15 @@
 |
 */
 include(APPPATH.'config/server.php');
-if(!isset($server['hostname']))
+if(
+	!isset($server['hostname']) &&
+	!isset($_REQUEST['remote'])
+	)
 {
-	$route['default_controller'] = "install/login";
-}else
-{
-	$route['default_controller'] = "welcome";
+	show_error('Blog is not installed yet!', 500, 'Please Install your blog from CPanel');
 }
+
+$route['default_controller'] = "welcome";
 $route['404_override'] = '';
 
 
